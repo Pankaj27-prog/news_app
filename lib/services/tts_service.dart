@@ -9,22 +9,23 @@ class TTSService {
   }
 
   Future<void> _initTTS() async {
-    // Set to Indian English
-    await _flutterTts.setLanguage("en-IN");
-    await _flutterTts.setSpeechRate(0.7); // Moderate speed for Indian English
+    // Set to US English for better web compatibility
+    await _flutterTts.setLanguage("en-US");
+    await _flutterTts.setSpeechRate(0.5); // Slower speed for better clarity
     await _flutterTts.setVolume(1.0);
-    await _flutterTts.setPitch(1.1); // Slightly higher pitch for Indian female voice
+    await _flutterTts.setPitch(1.0); // Neutral pitch
     
-    // Get available voices and set an Indian female voice
+    // Get available voices
     final voices = await _flutterTts.getVoices;
-    final indianVoice = voices.firstWhere(
-      (voice) => voice['name'].toString().toLowerCase().contains('indian') ||
-                 voice['name'].toString().toLowerCase().contains('female') ||
-                 voice['name'].toString().toLowerCase().contains('hi-IN'),
-      orElse: () => voices.first,
-    );
-    
-    await _flutterTts.setVoice({"name": indianVoice['name'], "locale": indianVoice['locale']});
+    if (voices.isNotEmpty) {
+      // Try to find a female voice, fallback to first available
+      final femaleVoice = voices.firstWhere(
+        (voice) => voice['name'].toString().toLowerCase().contains('female'),
+        orElse: () => voices.first,
+      );
+      
+      await _flutterTts.setVoice({"name": femaleVoice['name'], "locale": femaleVoice['locale']});
+    }
   }
 
   Future<void> speak(String text) async {

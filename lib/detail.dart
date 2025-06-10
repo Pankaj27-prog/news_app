@@ -1,9 +1,11 @@
-import 'dart:convert';
+// import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:url_launcher/url_launcher.dart';
+import '../models/article.dart';
+import '../services/bookmark_service.dart';
 
 class DetailPage extends StatefulWidget {
-  final Map article;
+  final Map<String, dynamic> article;
   const DetailPage({super.key, required this.article});
 
   @override
@@ -11,38 +13,48 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
+  final BookmarkService _bookmarkService = BookmarkService();
   bool isBookmarked = false;
 
   @override
   void initState() {
     super.initState();
-    checkIfBookmarked();
+    _checkBookmarkStatus();
   }
 
-  Future<void> checkIfBookmarked() async {
-    final prefs = await SharedPreferences.getInstance();
-    final List<String> saved =
-        prefs.getStringList('bookmarks') ?? <String>[];
-    final currentJson = jsonEncode(widget.article);
-    setState(() {
-      isBookmarked = saved.contains(currentJson);
-    });
-  }
-
-  Future<void> toggleBookmark() async {
-    final prefs = await SharedPreferences.getInstance();
-    final List<String> saved =
-        prefs.getStringList('bookmarks') ?? <String>[];
-    final currentJson = jsonEncode(widget.article);
-
-    if (isBookmarked) {
-      saved.remove(currentJson);
-    } else {
-      saved.add(currentJson);
+  Future<void> _checkBookmarkStatus() async {
+    try {
+      final article = Article.fromJson(widget.article);
+      final isBookmarked = await _bookmarkService.isArticleBookmarked(article);
+      if (mounted) {
+        setState(() {
+          this.isBookmarked = isBookmarked;
+        });
+      }
+    } catch (e) {
+      // Silent error handling for bookmark status
     }
+  }
 
-    await prefs.setStringList('bookmarks', saved);
-    setState(() => isBookmarked = !isBookmarked);
+  Future<void> _toggleBookmark() async {
+    try {
+      final article = Article.fromJson(widget.article);
+      await _bookmarkService.toggleBookmark(article);
+      if (mounted) {
+        setState(() {
+          isBookmarked = !isBookmarked;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to update bookmark'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -55,7 +67,7 @@ class _DetailPageState extends State<DetailPage> {
         actions: [
           IconButton(
             icon: Icon(isBookmarked ? Icons.bookmark : Icons.bookmark_border),
-            onPressed: toggleBookmark,
+            onPressed: _toggleBookmark,
           ),
           IconButton(
             icon: const Icon(Icons.share),
