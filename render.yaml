@@ -13,7 +13,18 @@ services:
       flutter config --enable-web
       # Build web app
       flutter build web --release
-    startCommand: node server.js
+      # Verify build
+      if [ ! -d "build/web" ]; then
+        echo "Error: Flutter web build failed"
+        exit 1
+      fi
+    startCommand: |
+      # Verify build exists before starting server
+      if [ ! -d "build/web" ]; then
+        echo "Error: Flutter web build not found"
+        exit 1
+      fi
+      node server.js
     envVars:
       - key: NODE_ENV
         value: production
