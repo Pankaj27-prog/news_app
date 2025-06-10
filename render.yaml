@@ -1,0 +1,86 @@
+services:
+  - type: web
+    name: news-app
+    env: node
+    plan: free
+    dockerfilePath: null
+    buildCommand: |
+      # Install Flutter
+      git clone https://github.com/flutter/flutter.git -b stable
+      export PATH="$PATH:`pwd`/flutter/bin"
+      flutter doctor
+      # Install dependencies
+      npm install
+      flutter pub get
+      flutter config --enable-web
+      # Build web app
+      flutter build web --release --web-renderer html
+      # Create public directory and copy files
+      mkdir -p public
+      cp -r build/web/* public/
+      # Ensure all required files are present
+      if [ ! -f "public/main.dart.js" ]; then
+        echo "Error: main.dart.js not found in build/web"
+        exit 1
+      fi
+      if [ ! -f "public/flutter.js" ]; then
+        echo "Error: flutter.js not found in build/web"
+        exit 1
+      fi
+      # Create index.html with proper configuration
+      cat > public/index.html << 'EOL'
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="News App">
+  <title>News App</title>
+  <link rel="manifest" href="manifest.json">
+  <script>
+    var serviceWorkerVersion = null;
+  </script>
+  <script src="flutter.js" defer></script>
+</head>
+<body>
+  <script>
+    window.addEventListener('load', function(ev) {
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+        onEntrypointLoaded: function(engineInitializer) {
+          engineInitializer.initializeEngine().then(function(appRunner) {
+            appRunner.runApp();
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+EOL
+      # Create manifest.json
+      cat > public/manifest.json << 'EOL'
+{
+  "name": "News App",
+  "short_name": "News App",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0175C2",
+  "theme_color": "#0175C2",
+  "description": "News App",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}
+EOL
+      # Verify files exist
+      echo "Contents of public directory:"
+      ls -la public/
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18.x
+      - key: PORT
+        value: 3000 
