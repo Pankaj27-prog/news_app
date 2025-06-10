@@ -17,46 +17,31 @@ app.use(helmet({
 // Enable compression
 app.use(compression());
 
-// Debug: Log current directory and public directory contents
+// Debug: Log current directory and build directory contents
 console.log('Current directory:', __dirname);
-const publicDir = path.join(__dirname, 'public');
-console.log('Public directory:', publicDir);
+const buildDir = path.join(__dirname, 'build', 'web');
+console.log('Build directory:', buildDir);
 
-// Ensure public directory exists
-async function ensurePublicDirectory() {
+// Ensure build directory exists
+async function ensureBuildDirectory() {
   try {
-    // Create public directory if it doesn't exist
-    await fs.ensureDir(publicDir);
-    console.log('Public directory created/verified');
-
-    // Create index.html if it doesn't exist
-    const indexPath = path.join(publicDir, 'index.html');
-    if (!await fs.pathExists(indexPath)) {
-      const basicHtml = `<!DOCTYPE html>
-<html>
-<head>
-    <title>News App</title>
-    <base href="/">
-</head>
-<body>
-    <script src="main.dart.js"></script>
-</body>
-</html>`;
-      await fs.writeFile(indexPath, basicHtml);
-      console.log('Created index.html');
+    // Check if build directory exists
+    if (!await fs.pathExists(buildDir)) {
+      console.error('Build directory not found. Please run "flutter build web" first.');
+      process.exit(1);
     }
 
-    // List contents of public directory
-    const files = await fs.readdir(publicDir);
-    console.log('Public directory contents:', files);
+    // List contents of build directory
+    const files = await fs.readdir(buildDir);
+    console.log('Build directory contents:', files);
   } catch (error) {
-    console.error('Error setting up public directory:', error);
+    console.error('Error checking build directory:', error);
     process.exit(1);
   }
 }
 
-// Initialize public directory
-ensurePublicDirectory().then(() => {
+// Initialize build directory check
+ensureBuildDirectory().then(() => {
   // Set proper MIME types
   app.use((req, res, next) => {
     if (req.url.endsWith('.js')) {
@@ -73,8 +58,8 @@ ensurePublicDirectory().then(() => {
     next();
   });
 
-  // Serve static files from the public directory
-  app.use(express.static(publicDir, {
+  // Serve static files from the build directory
+  app.use(express.static(buildDir, {
     maxAge: '1h',
     etag: true,
     lastModified: true,
@@ -87,7 +72,7 @@ ensurePublicDirectory().then(() => {
 
   // Handle all routes by serving index.html
   app.get('*', (req, res) => {
-    const indexPath = path.join(publicDir, 'index.html');
+    const indexPath = path.join(buildDir, 'index.html');
     console.log('Serving index.html from:', indexPath);
     res.sendFile(indexPath);
   });

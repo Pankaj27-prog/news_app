@@ -1,19 +1,17 @@
 {
-  "name": "news-app-server",
+  "name": "news_app",
   "version": "1.0.0",
-  "description": "Server for Flutter News App",
+  "description": "News App",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "flutter pub get && flutter build web",
-    "postinstall": "flutter pub get"
+    "build": "flutter build web --release"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "path": "^0.12.7",
-    "fs-extra": "^11.2.0",
     "compression": "^1.7.4",
-    "helmet": "^7.1.0"
+    "helmet": "^7.1.0",
+    "fs-extra": "^11.2.0"
   },
   "engines": {
     "node": ">=18.0.0"
