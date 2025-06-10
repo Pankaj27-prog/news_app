@@ -3,6 +3,9 @@
 # Exit on error
 set -e
 
+# Make script executable
+chmod +x "$0"
+
 # Install Flutter
 echo "Installing Flutter..."
 git clone https://github.com/flutter/flutter.git -b stable
