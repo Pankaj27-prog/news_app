@@ -3,9 +3,15 @@ services:
     name: news-app
     env: node
     buildCommand: |
-      flutter build web
+      # Install Flutter
+      git clone https://github.com/flutter/flutter.git -b stable
+      export PATH="$PATH:`pwd`/flutter/bin"
+      flutter doctor
+      flutter build web --release
       npm install
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
-        value: production 
+        value: production
+      - key: FLUTTER_VERSION
+        value: stable 
