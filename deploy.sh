@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Install Flutter dependencies
-flutter pub get
-
-# Build the Flutter web app
+# Build Flutter web
+echo "Building Flutter web..."
 flutter build web
 
 # Install Node.js dependencies
+echo "Installing Node.js dependencies..."
 npm install
 
 # Start the server
-npm start 
+echo "Starting server..."
+node server.js 

@@ -53,6 +53,9 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   Future<void> _generateSummary() async {
     if (widget.article.content == null || widget.article.content!.isEmpty) {
       if (mounted) {
+        setState(() {
+          _isLoadingSummary = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('No content available to generate summary'),

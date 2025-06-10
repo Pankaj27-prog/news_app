@@ -3,32 +3,9 @@ services:
     name: news-app
     env: node
     buildCommand: |
-      # Install Flutter
-      git clone https://github.com/flutter/flutter.git -b stable
-      export PATH="$PATH:`pwd`/flutter/bin"
-      flutter doctor
-      # Install dependencies
+      flutter build web
       npm install
-      flutter pub get
-      flutter config --enable-web
-      # Build web app
-      flutter build web --release
-      # Verify build
-      if [ ! -d "build/web" ]; then
-        echo "Error: Flutter web build failed"
-        exit 1
-      fi
-    startCommand: |
-      # Verify build exists before starting server
-      if [ ! -d "build/web" ]; then
-        echo "Error: Flutter web build not found"
-        exit 1
-      fi
-      node server.js
+    startCommand: node server.js
     envVars:
       - key: NODE_ENV
-        value: production
-      - key: PATH
-        value: $PATH:/opt/render/project/src/flutter/bin
-    healthCheckPath: /
-    autoDeploy: true 
+        value: production 
