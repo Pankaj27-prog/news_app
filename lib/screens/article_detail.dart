@@ -16,18 +16,23 @@ class ArticleDetailScreen extends StatefulWidget {
 }
 
 class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
-  final BookmarkService _bookmarkService = BookmarkService();
-  final SummaryService _summaryService = SummaryService();
-  final TTSService _ttsService = TTSService();
-  bool _isBookmarked = false;
   String? _summary;
-  bool _isLoadingSummary = false;
+  bool _isLoading = false;
+  bool _isBookmarked = false;
+  final TTSService _ttsService = TTSService();
+  final SummaryService _summaryService = SummaryService();
+  final BookmarkService _bookmarkService = BookmarkService();
   bool _isSpeaking = false;
 
   @override
   void initState() {
     super.initState();
     _checkBookmarkStatus();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _generateSummary();
   }
 
@@ -51,47 +56,31 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   }
 
   Future<void> _generateSummary() async {
-    if (widget.article.content == null || widget.article.content!.isEmpty) {
-      if (mounted) {
-        setState(() {
-          _isLoadingSummary = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No content available to generate summary'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-      return;
-    }
+    if (_summary != null) return; // Don't regenerate if we already have a summary
     
     setState(() {
-      _isLoadingSummary = true;
-      _summary = null;
+      _isLoading = true;
     });
 
     try {
-      final summary = await _summaryService.getArticleSummary(widget.article.content!);
+      final summary = await _summaryService.getArticleSummary(
+        widget.article.content ?? '',
+      );
       if (mounted) {
         setState(() {
           _summary = summary;
-          _isLoadingSummary = false;
+          _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _isLoadingSummary = false;
+          _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to generate summary: ${e.toString()}'),
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: 'Retry',
-              onPressed: _generateSummary,
-            ),
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -277,7 +266,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  if (_isLoadingSummary)
+                  if (_isLoading)
                     const Center(child: CircularProgressIndicator())
                   else if (_summary != null) ...[
                     Container(
