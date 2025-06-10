@@ -3,11 +3,21 @@ services:
     name: news-app
     env: node
     buildCommand: |
+      # Install Flutter
+      git clone https://github.com/flutter/flutter.git -b stable
+      export PATH="$PATH:`pwd`/flutter/bin"
+      flutter doctor
+      # Install dependencies
       npm install
+      flutter pub get
+      flutter config --enable-web
+      # Build web app
       flutter build web --release
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PATH
+        value: $PATH:/opt/render/project/src/flutter/bin
     healthCheckPath: /
     autoDeploy: true 
