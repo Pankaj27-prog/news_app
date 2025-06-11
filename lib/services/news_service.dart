@@ -2,12 +2,30 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:js/js.dart';
+import 'dart:html' as html;
+
+@JS('window.env')
+external dynamic get _windowEnv;
 
 class NewsService {
   static const String _baseUrl = 'https://newsapi.org/v2';
   
   // API Key Configuration
   static String get _apiKey {
+    if (kIsWeb) {
+      // For web, try to get the API key from window.env
+      try {
+        final apiKey = _windowEnv?.NEWS_API_KEY as String?;
+        if (apiKey != null && apiKey.isNotEmpty) {
+          return apiKey;
+        }
+      } catch (e) {
+        debugPrint('Error getting API key from window.env: $e');
+      }
+    }
+    
+    // Fallback to dotenv
     final key = dotenv.env['NEWS_API_KEY'];
     if (key == null || key.isEmpty) {
       debugPrint('Warning: NEWS_API_KEY not found in environment variables');

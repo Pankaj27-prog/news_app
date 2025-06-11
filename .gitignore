@@ -33,6 +33,7 @@ migrate_working_dir/
 /build/
 
 # Web related
+# !build/web/  # Uncomment this line to include web build files
 
 # Symbolication related
 app.*.symbols

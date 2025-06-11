@@ -1,17 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dashboard.dart';
 import 'theme_provider.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
   try {
-    await dotenv.load(fileName: ".env");
-    debugPrint('Environment variables loaded successfully');
-    debugPrint('NEWS_API_KEY present: ${dotenv.env['NEWS_API_KEY']?.isNotEmpty ?? false}');
+    // For web, we need to load the .env file differently
+    if (kIsWeb) {
+      await dotenv.load(fileName: ".env");
+      debugPrint('Web environment: Loading .env file');
+    } else {
+      await dotenv.load();
+      debugPrint('Mobile environment: Loading .env file');
+    }
+    
+    // Verify API key
+    final apiKey = dotenv.env['NEWS_API_KEY'];
+    if (apiKey == null || apiKey.isEmpty) {
+      debugPrint('WARNING: NEWS_API_KEY is not set in environment variables');
+    } else {
+      debugPrint('NEWS_API_KEY is present and valid');
+    }
   } catch (e) {
-    debugPrint('Error loading .env file: $e');
+    debugPrint('Error loading environment variables: $e');
   }
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(),
