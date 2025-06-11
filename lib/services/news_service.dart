@@ -7,7 +7,14 @@ class NewsService {
   static const String _baseUrl = 'https://newsapi.org/v2';
   
   // API Key Configuration
-  static String get _apiKey => dotenv.env['NEWS_API_KEY'] ?? '';
+  static String get _apiKey {
+    final key = dotenv.env['NEWS_API_KEY'];
+    if (key == null || key.isEmpty) {
+      debugPrint('Warning: NEWS_API_KEY not found in environment variables');
+      return '';
+    }
+    return key;
+  }
   
   // Fallback data for testing and when API is unavailable
   static final List<Map<String, dynamic>> _fallbackArticles = [
@@ -52,11 +59,9 @@ class NewsService {
     String? category,
     String? searchQuery,
   }) async {
-    if (_apiKey == 'YOUR_API_KEY') {
-      if (kDebugMode) {
-        print('Error: API key not configured');
-      }
-      return _getFilteredFallbackData(category, searchQuery);
+    if (_apiKey.isEmpty) {
+      debugPrint('Error: API key not configured');
+      throw Exception('News API key not configured. Please check your environment variables.');
     }
 
     String url;
@@ -81,13 +86,10 @@ class NewsService {
         }
       }
       
-      // If we reach here, either the API call failed or returned no articles
-      return _getFilteredFallbackData(category, searchQuery);
+      throw Exception('Failed to fetch news: ${response.statusCode}');
     } catch (e) {
-      if (kDebugMode) {
-        print('Error fetching news: $e');
-      }
-      return _getFilteredFallbackData(category, searchQuery);
+      debugPrint('Error fetching news: $e');
+      throw Exception('Failed to fetch news. Please try again later.');
     }
   }
 
