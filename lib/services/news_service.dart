@@ -11,6 +11,7 @@ class NewsService {
     final key = dotenv.env['NEWS_API_KEY'];
     if (key == null || key.isEmpty) {
       debugPrint('Warning: NEWS_API_KEY not found in environment variables');
+      debugPrint('Current environment variables: ${dotenv.env.toString()}');
       return '';
     }
     return key;
@@ -76,7 +77,8 @@ class NewsService {
     String? category,
     String? searchQuery,
   }) async {
-    if (_apiKey.isEmpty) {
+    final apiKey = _apiKey;
+    if (apiKey.isEmpty) {
       debugPrint('Error: API key not configured');
       throw Exception('News API key not configured. Please check your environment variables.');
     }
@@ -84,13 +86,14 @@ class NewsService {
     String url;
     try {
       if (searchQuery != null && searchQuery.isNotEmpty) {
-        url = '$_baseUrl/everything?q=$searchQuery&apiKey=$_apiKey&language=en&sortBy=publishedAt';
+        url = '$_baseUrl/everything?q=$searchQuery&apiKey=$apiKey&language=en&sortBy=publishedAt';
       } else if (category != null && category != 'All') {
-        url = '$_baseUrl/top-headlines?category=${category.toLowerCase()}&apiKey=$_apiKey&language=en&country=us&pageSize=50';
+        url = '$_baseUrl/top-headlines?category=${category.toLowerCase()}&apiKey=$apiKey&language=en&country=us&pageSize=50';
       } else {
-        url = '$_baseUrl/top-headlines?country=us&apiKey=$_apiKey&language=en&pageSize=50';
+        url = '$_baseUrl/top-headlines?country=us&apiKey=$apiKey&language=en&pageSize=50';
       }
 
+      debugPrint('Making API request to: ${url.replaceAll(apiKey, 'REDACTED')}');
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -109,6 +112,7 @@ class NewsService {
         }
       }
       
+      debugPrint('API Error: ${response.statusCode} - ${response.body}');
       throw Exception('Failed to fetch news: ${response.statusCode}');
     } catch (e) {
       debugPrint('Error fetching news: $e');

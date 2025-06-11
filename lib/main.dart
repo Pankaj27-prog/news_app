@@ -7,8 +7,10 @@ import 'theme_provider.dart';
 Future<void> main() async {
   try {
     await dotenv.load(fileName: ".env");
+    debugPrint('Environment variables loaded successfully');
+    debugPrint('NEWS_API_KEY present: ${dotenv.env['NEWS_API_KEY']?.isNotEmpty ?? false}');
   } catch (e) {
-    print('Warning: .env file not found. Using default values.');
+    debugPrint('Error loading .env file: $e');
   }
   runApp(
     ChangeNotifierProvider(
