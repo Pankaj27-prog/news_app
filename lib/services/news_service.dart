@@ -16,12 +16,14 @@ class NewsService {
     if (kIsWeb) {
       // For web, try to get the API key from window.env
       try {
-        final apiKey = _windowEnv?.NEWS_API_KEY as String?;
-        if (apiKey != null && apiKey.isNotEmpty) {
+        // Access window.env directly
+        final apiKey = const String.fromEnvironment('NEWS_API_KEY');
+        if (apiKey.isNotEmpty) {
+          debugPrint('Using API key from build environment');
           return apiKey;
         }
       } catch (e) {
-        debugPrint('Error getting API key from window.env: $e');
+        debugPrint('Error getting API key from build environment: $e');
       }
     }
     

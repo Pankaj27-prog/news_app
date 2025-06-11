@@ -35,8 +35,11 @@
   <title>news_app</title>
   <link rel="manifest" href="manifest.json">
 
+  <!-- Environment Variables -->
+  <script src="env.js"></script>
+
   <!-- CORS headers -->
-  <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; img-src * data: blob: 'unsafe-inline';">
+  <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; img-src * data: blob: 'unsafe-inline'; font-src * data: 'unsafe-inline';">
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
