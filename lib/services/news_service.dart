@@ -109,7 +109,7 @@ class NewsService {
 
       // Build URL with query parameters
       final uri = Uri.parse(_baseUrl).replace(queryParameters: queryParams);
-      debugPrint('Making API request to: $uri');
+      debugPrint('Making request to proxy server: $uri');
 
       final response = await http.get(uri);
 

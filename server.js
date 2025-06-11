@@ -1,8 +1,14 @@
 const express = require('express');
 const path = require('path');
 const axios = require('axios');
+const cors = require('cors');
+require('dotenv').config();
+
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Enable CORS
+app.use(cors());
 
 // Serve static files from the build directory
 app.use(express.static(path.join(__dirname, 'build/web')));
@@ -21,7 +27,13 @@ app.get('/api/news', async (req, res) => {
       url += 'top-headlines?country=us';
     }
     
-    url += `&apiKey=${process.env.NEWS_API_KEY}&language=en&pageSize=50`;
+    const apiKey = process.env.NEWS_API_KEY;
+    if (!apiKey) {
+      throw new Error('NEWS_API_KEY is not configured');
+    }
+    
+    url += `&apiKey=${apiKey}&language=en&pageSize=50`;
+    console.log('Making request to News API:', url.replace(apiKey, 'REDACTED'));
     
     const response = await axios.get(url);
     res.json(response.data);
@@ -41,4 +53,5 @@ app.get('*', (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
+  console.log('NEWS_API_KEY configured:', process.env.NEWS_API_KEY ? 'Yes' : 'No');
 }); 
