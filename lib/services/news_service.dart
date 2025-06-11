@@ -9,7 +9,8 @@ import 'dart:html' as html;
 external dynamic get _windowEnv;
 
 class NewsService {
-  static const String _baseUrl = 'https://newsapi.org/v2';
+  // Use relative URL to hit our proxy server
+  static const String _baseUrl = '/api/news';
   
   // API Key Configuration
   static String get _apiKey {
@@ -97,37 +98,27 @@ class NewsService {
     String? category,
     String? searchQuery,
   }) async {
-    final apiKey = _apiKey;
-    if (apiKey.isEmpty) {
-      debugPrint('Error: API key not configured');
-      throw Exception('News API key not configured. Please check your environment variables.');
-    }
-
-    String url;
     try {
+      // Build query parameters
+      final queryParams = <String, String>{};
       if (searchQuery != null && searchQuery.isNotEmpty) {
-        url = '$_baseUrl/everything?q=$searchQuery&apiKey=$apiKey&language=en&sortBy=publishedAt';
+        queryParams['searchQuery'] = searchQuery;
       } else if (category != null && category != 'All') {
-        url = '$_baseUrl/top-headlines?category=${category.toLowerCase()}&apiKey=$apiKey&language=en&country=us&pageSize=50';
-      } else {
-        url = '$_baseUrl/top-headlines?country=us&apiKey=$apiKey&language=en&pageSize=50';
+        queryParams['category'] = category;
       }
 
-      debugPrint('Making API request to: ${url.replaceAll(apiKey, 'REDACTED')}');
-      final response = await http.get(Uri.parse(url));
+      // Build URL with query parameters
+      final uri = Uri.parse(_baseUrl).replace(queryParameters: queryParams);
+      debugPrint('Making API request to: $uri');
+
+      final response = await http.get(uri);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['status'] == 'ok') {
           final articles = List<Map<String, dynamic>>.from(data['articles']);
           if (articles.isNotEmpty) {
-            // Process image URLs for each article
-            return articles.map((article) {
-              if (article['urlToImage'] != null) {
-                article['urlToImage'] = processImageUrl(article['urlToImage']);
-              }
-              return article;
-            }).toList();
+            return articles;
           }
         }
       }
