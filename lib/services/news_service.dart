@@ -15,6 +15,23 @@ class NewsService {
     }
     return key;
   }
+
+  // Fallback image URL
+  static const String _fallbackImageUrl = 'https://via.placeholder.com/200x200?text=News';
+
+  // Process image URL to handle CORS issues
+  static String processImageUrl(String? url) {
+    if (url == null || url.isEmpty) {
+      return _fallbackImageUrl;
+    }
+    
+    // If the image URL is from picsum.photos, use a different service
+    if (url.contains('picsum.photos')) {
+      return _fallbackImageUrl;
+    }
+    
+    return url;
+  }
   
   // Fallback data for testing and when API is unavailable
   static final List<Map<String, dynamic>> _fallbackArticles = [
@@ -81,7 +98,13 @@ class NewsService {
         if (data['status'] == 'ok') {
           final articles = List<Map<String, dynamic>>.from(data['articles']);
           if (articles.isNotEmpty) {
-            return articles;
+            // Process image URLs for each article
+            return articles.map((article) {
+              if (article['urlToImage'] != null) {
+                article['urlToImage'] = processImageUrl(article['urlToImage']);
+              }
+              return article;
+            }).toList();
           }
         }
       }
